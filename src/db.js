@@ -1,6 +1,7 @@
 const sqlite = require("sqlite3");
+require('dotenv').config()
 
-const db = new sqlite.Database("my-ecommerce.db");
+const db = new sqlite.Database(process.env.SLQLITE_DB);
 
 db.serialize(() => {
     db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, email EMAIL, password TEXT, role TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)");
