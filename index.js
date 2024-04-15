@@ -1,9 +1,7 @@
 const express = require('express')
 const app = express()
-const path = require('path')
 var bodyParser = require('body-parser')
 
-app.use(express.static(path.join(__dirname, 'static')))
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
