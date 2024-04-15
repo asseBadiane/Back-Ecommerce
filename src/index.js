@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 var bodyParser = require('body-parser')
+require('dotenv').config()
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -12,6 +13,6 @@ app.use('/users', usersRoute)
 app.use('/products', productsRoute)
 
 
-app.listen(3000) 
-console.log('Server listening on port 3000 😎')
+app.listen(process.env.PORT || 3000) 
+console.log(`Server listening on port ${process.env.PORT || 3000} 😎`)
 
