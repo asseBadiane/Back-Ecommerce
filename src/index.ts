@@ -1,13 +1,15 @@
-const express = require('express')
-const app = express()
-var bodyParser = require('body-parser')
+import express  from 'express';
+import bodyParser  from 'body-parser'; ;
 require('dotenv').config()
 
+const app = express()
+
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-const usersRoute = require('./routes/usersRoute')
-const productsRoute = require('./routes/productsRoute')
+import usersRoute  from './routes/usersRoute'
+import productsRoute  from './routes/productsRoute'
 
 app.use('/users', usersRoute)
 app.use('/products', productsRoute)
