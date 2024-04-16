@@ -1,76 +1,79 @@
-// const productService = require("../services/productsServices");
+import { Product } from "../models/product";
+import { User } from "../models/user";
+import { ProductService } from "../services/productsServices";
 import { Request, Response } from "express";
-import { productService } from "../services/productsServices";
 
-export const productController = {
-  
+export class ProductController {
+  private productService: ProductService; // initialize the Service
+  constructor() {
+    this.productService = new ProductService(); // create an instance of the Service
+  }
 
-// GET ALL PRODUCTS
-  getAll (req: Request, res: Response) {
-  productService.getAll(function(err: any, list_products:[]) {
-      if (err) {
-        // Gérer l'erreur
-        console.error("Erreur lors de la récupération des produits :", err);
-        res.status(500).json({ message: "Erreur lors de la récupération des produits" });
-        return;
-      }
-      // Renvoyer les données récupérées
+  // GET ALL PRODUCTS
+  async getAll(req: Request, res: Response) {
+    try {
+      const list_products = await this.productService.getAll();
       res.json(list_products);
-    });
-  },
-  
-
-// GET PRODUCT BY ID
-getById(req: Request, res: Response) {
-  const id: any = req.params.id;
-  productService.getById(id, function(err: any, data: any) {
-    if (err) {
-      // Gérer l'erreur de manière explicite
-      console.error("Erreur lors de la récupération du produit par ID:", err);
-      res.status(500).json({ error: "Erreur interne du serveur" });
-      return;
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
-    if (!data) {
-      // Si aucun produit n'est trouvé avec cet ID
-      res.status(404).json({ error: "Produit non trouvé" });
-      return;
+  }
+
+  // GET PRODUCT BY ID
+  async getById(req: Request, res: Response) {
+    try {
+      const product = await this.productService.getById(req.params.id);
+      if (product) {
+        res.json(product);
+      } else {
+        res.sendStatus(404);
+      }
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
-    // Renvoyer les produits
-    res.json(data);
-  });
-},
+  }
 
-
-// CREATE USER
-  create(req: Request, res: Response) {
+  // CREATE PRODUCT
+  async create(req: Request, res: Response) {
     const { name, description, price } = req.body;
     if (
       name === undefined ||
+      description === undefined ||
       price === undefined
     ) {
-      res.status(400).json({ message: "Le corps de la requête ne correspond pas au contrat" });
+      res.status(400).json({ message: "body not match contract " });
     } else {
-        const product = { name, description, price };
-        const data = productService.create(product);
+      try {
+        const newProduct: Product = { name, description, price };
+        const data = await this.productService.create(newProduct);
         res.status(201).json(data);
-        
+        console.log(data);
+      } catch (error: any) {
+        res.status(400).json({ message: error.message });
+      }
     }
-  },
+  }
 
-// UPDATE PRODUCT
-  update (req: Request, res: Response) {
-  const id: any = req.params.id;
-  const product = req.body;
-  const data = productService.update(id, product);
-  res.status(200).json(data);
-},
+  // UPDATE USER
+  async update(req: Request, res: Response) {
+    try {
+      let product: Product = req.body;
+      product.id = req.params.id as string;
+      const data = await this.productService.update(product);
+      res.status(200).json({ message: "product updated successfully 😃" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 
-  delete(req: Request, res: Response) {
-  const id: any = req.params.id;
-  productService.delete(id);
-  res.status(200).json({ message: `Produit supprimé avec succès` });
+  // DELETE USER
+  async delete(req: Request, res: Response) {
+    try {
+      const id = req.params.id;
+      const result = await this.productService.delete(id);
+      res.status(200).json({ message: "product deleted successfully 😥" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 }
-
-
-}
-  

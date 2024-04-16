@@ -1,74 +1,57 @@
-const db = require("../db");
+import { Product } from "../models/product";
+import { Database } from "../database/database";
 
-export const productService = {
+export class ProductService {
+  private db: Database; // initialize the database
+  constructor() {
+    this.db = new Database(); // create an instance of the database
+  }
+
+  // GET ALL PRODUCTS
+  async getAll(): Promise<Product[]> {
+    const products: Product[] = await this.db.query("SELECT * FROM products");
+    return products;
+  }
+
+  // GET Product BY ID
+  async getById(id: string): Promise<Product> {
+    const products: Product[] = await this.db.query(
+      "SELECT * FROM products where id=?",
+      [id]
+    );
+    //const Product2:Product= await  this.db.query(`SELECT * FROM products where id=${id}`);
+    //const Product3:Product= await  this.db.query("SELECT * FROM products where id="+id);
+    if (products.length > 0) {
+      return products[0];
+    }
+    throw new Error(`Aucun produit trouvé avec l'ID ${id}`); // Rejeter la promesse avec un message d'erreur approprié;
+  }
   
+  // CREATE Product
+  async create(newProduct: Product): Promise<Product> {
+    const result = await this.db.query(
+      "INSERT INTO products(name,description,price) VALUES (?,?,?)",
+      [newProduct.name, newProduct.description, newProduct.price]
+    );
 
-  // GET ALL products
-  getAll(callback: any) {
-  let productsJson: any = [];
-  db.each(
-    "SELECT * FROM products",
-    function (err: any, row: any) {
-      if (err) {
-        console.error("Erreur lors de la récupération des produits :", err);
-        callback(err, null);
-        return;
-      }
-      productsJson.push(row);
-      console.log(row);
-    },
-    function () {
-      callback(null, productsJson);
-    }
-  );
-},
+    //newProduct.id = result.lastId;
+    return newProduct;
+  }
 
-// GET product by id
-  getById (id: number, callback: any) {
-  db.get("SELECT * FROM products WHERE id = ?", id, function (err: any, row : any) {
-    if (err) {
-      console.error("Erreur lors de la récupération du produit :", err);
-      callback(err, null); // Renvoyer l'erreur au callback
-      return;
-    }
+  // DELETE Product
+  async delete(id: string): Promise<any> {
+    const result: any = await this.db.query("DELETE FROM products where id=?", [
+      id,
+    ]);
+    return result;
+  }
 
-    console.log("produit :", row);
-    callback(null, row); // Renvoyer les données du produit au callback
-  });
-},
-
-// Create a product
-  create (product: any) {
-  db.prepare(
-    "INSERT INTO products (name, description, price) VALUES (?, ?, ?, ?)"
-  ).run(product.name, product.description, product.price);
-  console.log(product);
-  return product;
-},
-
-// Update a product
- update (productId: number, product: any) {
-  db.run('UPDATE products SET name = ?, description = ?, price = ? WHERE id = ?', [product.name, product.description, product.price, productId], function(err: any) {
-      if (err) {
-          console.error('Erreur lors de la mise à jour du produit :', err);
-          // res.status(500).send('Erreur interne du serveur');
-          return;
-      }
-  });
-  console.log('Produit mis à jour avec succès', product);
-  return product;
-},
-
-// Dlete a product
-  delete (productId: number) {
-  db.run("DELETE FROM products WHERE id = ?", productId, function (err: any) {
-    if (err) {
-      console.error("Erreur lors de la suppression du produit :", err);
-      // res.status(500).send("Erreur interne du serveur");
-      return;
-    }
-    console.log("Produit supprimé avec succès");
-  });
-},
-
+  // UPDATE Product
+  async update(product: Product): Promise<Product> {
+    const result = await this.db.query(
+      "UPDATE products SET  name=?, description=?, price=?  where id = ?",
+      [product.name, product.description, product.price, product.id]
+    );
+    return result;
+  }
 }

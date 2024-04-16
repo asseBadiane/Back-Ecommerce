@@ -1,104 +1,69 @@
-const db = require("../db");
+import { User } from "../models/user";
+import { Database } from "../database/database";
+export class UserService {
+  private db: Database; // initialize the database
+  constructor() {
+    this.db = new Database(); // create an instance of the database
+  }
 
-export const userService = {
+  // GET ALL USERS
+  async getAll(): Promise<User[]> {
+    const users: User[] = await this.db.query("SELECT * FROM users");
+    return users;
+  }
 
-// GET ALL USERS
-  getAll (callback: any) {
-  let usersJson: any = [];
-  db.each(
-    "SELECT * FROM users",
-    function (err: any, row: any) {
-      if (err) {
-        console.error("Erreur lors de la récupération des utilisateurs :", err);
-        callback(err, null);
-        return;
-      }
-      usersJson.push(row);
-      console.log(row);
-    },
-    function () {
-      callback(null, usersJson);
+  // GET USER BY ID
+  async getById(id: string): Promise<User> {
+    const users: User[] = await this.db.query(
+      "SELECT * FROM users where id=?",
+      [id]
+    );
+    //const user2:User= await  this.db.query(`SELECT * FROM users where id=${id}`);
+    //const user3:User= await  this.db.query("SELECT * FROM users where id="+id);
+    if (users.length > 0) {
+      return users[0];
     }
-  );
-},
+    throw new Error(`Aucun utilisateur trouvé avec l'ID ${id}`); // Rejeter la promesse avec un message d'erreur approprié;
+  }
 
-// GET USER BY ID
-//   getById(id: number, callback: any) {
-//   db.get("SELECT * FROM users WHERE id = ?", id, function (err: any, row: any) {
-//     if (err) {
-//       console.error("Erreur lors de la récupération de l'utilisateur :", err);
-//       callback(err, null); // Renvoyer l'erreur au callback
-//       return;
-//     }
-//     console.log("utilisateur :", row);
-//     callback(null, row); // Renvoyer les données de l'utilisateur au callback
-//   });
-// },
+  // CHECK IF USER EXISTS
+  async notExist(username: string): Promise<boolean> {
+    const users: User[] = await this.db.query(
+      "SELECT * FROM users where username=?",
+      [username]
+    );
+    return users.length === 0;
+  }
 
-getById(id: number, callback: any) {
-  // Utiliser une requête SQL pour récupérer l'utilisateur avec l'ID spécifié
-  db.get("SELECT * FROM users WHERE id = ?", id, function (err: any, row: any) {
-    if (err) {
-      // Si une erreur se produit lors de l'exécution de la requête SQL, enregistrer l'erreur dans la console
-      console.error("Erreur lors de la récupération de l'utilisateur :", err);
-      // Renvoyer l'erreur au callback avec null pour les données
-      callback(err, null);
-      return;
-    }
-    // Si aucun erreur ne se produit, enregistrer les données de l'utilisateur dans la console
-    console.log("Utilisateur :", row);
-    // Renvoyer les données de l'utilisateur au callback avec null pour l'erreur
-    callback(null, row);
-  });
-},
+  // CREATE USER
+  async create(newUser: User): Promise<User> {
+    const result = await this.db.query(
+      "INSERT INTO users(username,email,password,role) VALUES (?,?,?,?)",
+      [newUser.username, newUser.email, newUser.password, newUser.role]
+    );
 
+    //newUser.id = result.lastId;
+    return newUser;
+  }
 
-// IF USER NOT EXIST
-  notExist(username: string) {
-  return db.get("SELECT * FROM users WHERE username = ?", username, function (err: any, row: string) {
-       if (err) {
-         console.error("Erreur lors de la sélection de l'utilisateur :", err);
-         callback(err, null); // Renvoyer l'erreur au callback
-         return ;;
-       }
-     });
-},
+  // DELETE USER
+  async delete(id: string): Promise<any> {
+    const result: any = await this.db.query("DELETE   FROM users where id=?", [
+      id,
+    ]);
+    return result;
+  }
 
-  create (user: any) {
-  db.prepare(
-    "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)"
-  ).run(user.username, user.email, user.password, user.role);
-  console.log(user);
-  return user;
-},
-
-// UPDATE USER
-  update (userId: number, user: any) {
-  db.run('UPDATE users SET username = ?, email = ?, password = ?, role = ? WHERE id = ?', [user.username, user.email, user.password, user.role, userId], function(err: any) {
-      if (err) {
-          console.error('Erreur lors de la mise à jour de l\'utilisateur :', err);
-          // res.status(500).send('Erreur interne du serveur');
-          return ;
-      }
-  });
-  console.log('Utilisateur mis à jour avec succès', user);
-  return user;
-},
-
-// DELETE USER
- delete(userId: number) {
-  db.run("DELETE FROM users WHERE id = ?", userId, function (err: any) {
-    if (err) {
-      console.error("Erreur lors de la suppression de l'utilisateur :", err);
-      // res.status(500).send("Erreur interne du serveur");
-      return;
-    }
-    console.log("Utilisateur supprimé avec succès");
-  });
+  // UPDATE USER
+  async update(user: User): Promise<User> {
+    const result = await this.db.query(
+      "UPDATE users SET  username=?, email=?, role=?  where id = ?",
+      [user.username, user.email, user.role, user.id]
+    );
+    return result;
+  }
+  /*async resetPassword(user:User, newPassword) : Promise <User> {
+    const result= await this.db.query("UPDATE  FROM  users where id = ? SET  firstname=? , lastname=? ", [newUser.firstname,newUser.lastname,newUser.login, newUser.password]);
+ 
+  }*/
 }
-
-};
-function callback(err: any, arg1: null) {
-  throw new Error("Function not implemented.");
-}
-

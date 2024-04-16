@@ -1,11 +1,35 @@
-import { Router } from 'express'
-const router = Router()
-import { productController } from '../controllers/productController'
+import { ProductController } from "./../controllers/productController";
+import express, { Router } from "express";
 
-router.get('/', productController.getAll) // GET ALL PRODUCTS
-router.get('/:id', productController.getById) // GET PRODUCT BY ID
-router.post('/', productController.create) // CREATE PRODUCT
-router.put('/:id', productController.update) // UPDATE PRODUCT
-router.delete('/:id', productController.delete) // DELETE PRODUCT
+export class ProductRoutes {
+  public router: Router;
+  private productController: ProductController;
+  constructor() {
+    this.router = express.Router();
+    this.productController = new ProductController();
+    this.configRoutes();
+  }
 
-export default router
+  private configRoutes() {
+    this.router.get(
+      "/",
+      this.productController.getAll.bind(this.productController)
+    );
+    this.router.post(
+      "/",
+      this.productController.create.bind(this.productController)
+    );
+    this.router.get(
+      "/:id",
+      this.productController.getById.bind(this.productController)
+    );
+    this.router.put(
+      "/:id",
+      this.productController.update.bind(this.productController)
+    );
+    this.router.delete(
+      "/:id",
+      this.productController.delete.bind(this.productController)
+    );
+  }
+}
